@@ -34,8 +34,7 @@ This project focuses on the automated detection of manufacturing defects in Prin
 ---
 
 ##  Project Structure
-``
-text
+```text
 ├── src/                # Python scripts for detection & processing
 ├── dataset/            # Samples and reference images
 ├── results/            # Output images with highlighted defects (Before/After)
