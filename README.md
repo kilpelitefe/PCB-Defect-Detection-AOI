@@ -1,6 +1,6 @@
 #  PCB Defect Detection - Automated Optical Inspection (AOI)
 
-> ** Project Status: Active Development**
+> ** Project Status: Active Development **
 > *This project is currently in the development phase. I am working on optimizing image processing algorithms and integrating specialized datasets.*
 
 --
