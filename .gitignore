@@ -1,4 +1,4 @@
-# Python sanal ortam
+# Python virtual environment
 .venv/
 venv/
 env/
@@ -12,13 +12,13 @@ __pycache__/
 .idea/
 .vscode/
 
-# YOLO / eğitim çıktıları
+# YOLO / training outputs
 runs/
 
-# Büyük Pix2Pix model dosyaları (GitHub 100MB sınırını aşıyor)
-# Bu modeller depoya dahil edilmez; edinme talimatı için README'ye bakın.
+# Large Pix2Pix model files (exceed GitHub's 100MB limit)
+# These models are not included in the repo; see README for how to obtain them.
 trained_pix2pix_model/
 
-# Geçici dosyalar
+# Temporary files
 *.tmp
 *.log
