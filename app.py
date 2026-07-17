@@ -72,7 +72,7 @@ st.sidebar.caption("Measures the overall performance of the model on the test se
 
 data_yaml_path = st.sidebar.text_input(
     "data.yaml path",
-    value=r"C:\Users\kilpe\OneDrive\Masaüstü\AOI\yolo_dataset\data.yaml"
+    value="yolo_dataset/data.yaml"
 )
 
 
