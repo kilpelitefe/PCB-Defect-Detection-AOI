@@ -44,6 +44,13 @@ GitHub's 100MB file size limit. To run the full application:
   `95_net_G.pth`. You need to add these files to this folder separately. Without
   them, YOLO detection still works but the Pix2Pix repair module is disabled.
 
+## Training
+
+The dataset preparation and training scripts for both models (YOLOv8 and
+Pix2Pix) are in the [`training/`](training/) folder — see
+[`training/README.md`](training/README.md) for the full pipeline, from the raw
+DeepPCB dataset to the model files used by the app.
+
 ## Dependency: pytorch-CycleGAN-and-pix2pix
 
 The Pix2Pix generator architecture (`define_G`) is provided by the
