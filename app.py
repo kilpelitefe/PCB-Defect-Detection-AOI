@@ -329,11 +329,11 @@ if uploaded_file is not None:
 
     with col1:
         st.subheader("Uploaded Image")
-        st.image(image, use_container_width=True)
+        st.image(image, width="stretch")
 
     with col2:
         st.subheader("Black & White (YOLO Input)")
-        st.image(gray_image, use_container_width=True)
+        st.image(gray_image, width="stretch")
         st.caption("YOLO detection runs on this black-and-white image.")
 
     # Feed YOLO the black-and-white version instead of the original color image.
@@ -352,7 +352,7 @@ if uploaded_file is not None:
         result_img_rgb = cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB)
 
         st.subheader("YOLO Detection Result")
-        st.image(result_img_rgb, use_container_width=True)
+        st.image(result_img_rgb, width="stretch")
 
         boxes = results[0].boxes
 
@@ -444,11 +444,11 @@ if uploaded_file is not None:
 
                 with pix_col1:
                     st.write("YOLO Defect Detection")
-                    st.image(result_img_rgb, use_container_width=True)
+                    st.image(result_img_rgb, width="stretch")
 
                 with pix_col2:
                     st.write("Pix2Pix Local Repair Suggestion")
-                    st.image(locally_repaired_image, use_container_width=True)
+                    st.image(locally_repaired_image, width="stretch")
 
                 repaired_buffer = io.BytesIO()
                 locally_repaired_image.save(repaired_buffer, format="PNG")
@@ -475,11 +475,11 @@ if uploaded_file is not None:
 
                         with before_col:
                             st.write("Defective Region")
-                            st.image(patch["original_crop"], use_container_width=True)
+                            st.image(patch["original_crop"], width="stretch")
 
                         with after_col:
                             st.write("Pix2Pix Local Repair Suggestion")
-                            st.image(patch["repaired_crop"], use_container_width=True)
+                            st.image(patch["repaired_crop"], width="stretch")
             else:
                 st.warning(
                     "Pix2Pix was not run for this image. "
