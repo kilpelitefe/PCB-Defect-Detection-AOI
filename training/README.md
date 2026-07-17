@@ -16,7 +16,7 @@ the YOLOv8 defect detector (`best.pt`) and the Pix2Pix repair generator
 
 ## Pipeline
 
-### 0. (Optional) Verify the dataset
+### 1. (Optional) Verify the dataset
 
 ```bash
 python check_dataset.py
@@ -25,7 +25,7 @@ python check_dataset.py
 Walks `PCBData/` and reports missing `_test`/`_temp` pairs, identical pairs and
 size mismatches.
 
-### 1. Convert DeepPCB to YOLOv8 format
+### 2. Convert DeepPCB to YOLOv8 format
 
 ```bash
 python prepare_yolo_dataset.py --source PCBData --output yolo_dataset
@@ -35,7 +35,7 @@ Maps DeepPCB classes (1-6) to YOLO ids (0-5: open, short, mousebite, spur,
 copper, pin-hole), converts corner-format boxes to normalized YOLO format,
 splits into train/val/test (70/20/10 by default) and writes `data.yaml`.
 
-### 2. Train YOLOv8
+### 3. Train YOLOv8
 
 ```bash
 yolo detect train data=yolo_dataset/data.yaml model=yolov8n.pt epochs=100 imgsz=640
@@ -44,7 +44,7 @@ yolo detect train data=yolo_dataset/data.yaml model=yolov8n.pt epochs=100 imgsz=
 Copy the resulting `runs/detect/train/weights/best.pt` to the repo root for the
 app to use.
 
-### 3. Build the Pix2Pix dataset
+### 4. Build the Pix2Pix dataset
 
 Two variants were experimented with:
 
@@ -59,7 +59,7 @@ python prepare_pix2pix_crops.py
 Both produce AB-format images (input and target concatenated horizontally) as
 expected by pytorch-CycleGAN-and-pix2pix.
 
-### 4. Train Pix2Pix
+### 5. Train Pix2Pix
 
 ```bash
 cd pytorch-CycleGAN-and-pix2pix
