@@ -21,20 +21,21 @@ from models.networks import define_G
 
 
 st.set_page_config(
-    page_title="PCB Hata Tespit Sistemi",
+    page_title="PCB Defect Detection System",
     layout="wide"
 )
 
-st.title("Otomatik Optik Muayene")
+st.title("Automated Optical Inspection")
 st.write(
-    "Bu sistem YOLOv8 modeli ile PCB üzerindeki üretim hatalarını tespit eder, "
-    "hata türlerini gösterir ve uygun görüntü formatlarında Pix2Pix ile görsel onarım önerisi sunar."
+    "This system detects manufacturing defects on PCBs using a YOLOv8 model, "
+    "shows the defect types, and provides visual repair suggestions with Pix2Pix "
+    "for suitable image formats."
 )
 
 
 
 confidence_value = st.sidebar.slider(
-    "Güven eşiği",
+    "Confidence threshold",
     min_value=0.10,
     max_value=0.90,
     value=0.25,
@@ -42,35 +43,35 @@ confidence_value = st.sidebar.slider(
 )
 
 padding_value = st.sidebar.slider(
-    "Pix2Pix kutu genişletme payı",
+    "Pix2Pix box padding",
     min_value=5,
     max_value=80,
     value=25,
     step=5
 )
 
-st.sidebar.write("### Modüller")
-st.sidebar.write("- YOLOv8: Hata tespiti")
-st.sidebar.write("- Pix2Pix: Görsel onarım önerisi")
+st.sidebar.write("### Modules")
+st.sidebar.write("- YOLOv8: Defect detection")
+st.sidebar.write("- Pix2Pix: Visual repair suggestion")
 
 st.sidebar.divider()
-st.sidebar.write("### Pix2Pix Kullanım Notu")
+st.sidebar.write("### Pix2Pix Usage Note")
 st.sidebar.info(
-    "Pix2Pix modeli DeepPCB benzeri siyah-beyaz AOI görüntülerinde anlamlı sonuç üretir. "
-    "Renkli veya veri seti dışı PCB fotoğraflarında Pix2Pix otomatik olarak devre dışı bırakılır."
+    "The Pix2Pix model produces meaningful results on DeepPCB-like black-and-white AOI images. "
+    "For color photos or PCB images outside the dataset, Pix2Pix is disabled automatically."
 )
 
 force_pix2pix = st.sidebar.checkbox(
-    "Pix2Pix'i veri seti dışı görüntülerde de zorla çalıştır",
+    "Force Pix2Pix even on out-of-dataset images",
     value=False
 )
 
 st.sidebar.divider()
-st.sidebar.write("### Model Doğruluğu")
-st.sidebar.caption("Test seti üzerinde modelin genel başarısını ölçer.")
+st.sidebar.write("### Model Accuracy")
+st.sidebar.caption("Measures the overall performance of the model on the test set.")
 
 data_yaml_path = st.sidebar.text_input(
-    "data.yaml yolu",
+    "data.yaml path",
     value=r"C:\Users\kilpe\OneDrive\Masaüstü\AOI\yolo_dataset\data.yaml"
 )
 
@@ -85,11 +86,11 @@ model = load_yolo_model()
 
 
 
-if st.sidebar.button("Test setinde doğruluğu ölç"):
+if st.sidebar.button("Evaluate accuracy on test set"):
     if not os.path.exists(data_yaml_path):
-        st.sidebar.error(f"data.yaml bulunamadı: {data_yaml_path}")
+        st.sidebar.error(f"data.yaml not found: {data_yaml_path}")
     else:
-        with st.spinner("Test seti değerlendiriliyor. Bu işlem birkaç dakika sürebilir..."):
+        with st.spinner("Evaluating on the test set. This may take a few minutes..."):
             metrics = model.val(
                 data=data_yaml_path,
                 split="test",
@@ -116,8 +117,8 @@ if "test_metrics" in st.session_state:
     c4.metric("Recall", f"{m['recall']:.3f}")
 
     st.sidebar.caption(
-        "Bu skorlar modelin eğitimde görmediği test görüntülerinden hesaplanır. "
-        "Yüksek skor, modelin DeepPCB test setinde başarılı genelleme yaptığını gösterir."
+        "These scores are computed on test images the model has never seen during training. "
+        "A high score indicates the model generalizes well on the DeepPCB test set."
     )
 
 
@@ -147,8 +148,8 @@ def load_pix2pix_model():
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(
-            "Pix2Pix generator modeli bulunamadı. "
-            "trained_pix2pix_model klasöründe latest_net_G.pth, 100_net_G.pth veya 95_net_G.pth olmalı."
+            "Pix2Pix generator model not found. "
+            "The trained_pix2pix_model folder must contain latest_net_G.pth, 100_net_G.pth or 95_net_G.pth."
         )
 
     state_dict = torch.load(model_path, map_location=device)
@@ -264,82 +265,83 @@ def pix2pix_repair_full_image(original_image, boxes, padding=25, feather=8):
 
 
 fix_suggestions = {
-    "open": "Devre hattında kopukluk vardır. Kopan bakır yol lehim veya jumper kablo ile onarılabilir.",
-    "short": "İki iletken yol arasında kısa devre vardır. Fazla lehim veya bakır temizlenmelidir.",
-    "mousebite": "Bakır hatta eksilme vardır. Bölge lehimle güçlendirilebilir.",
-    "spur": "İstenmeyen bakır çıkıntısı vardır. Fazlalık bakır kazınmalı veya temizlenmelidir.",
-    "copper": "Bakır yüzey hatası vardır. Eksik veya fazla bakır alan kontrol edilmelidir.",
-    "pin-hole": "Bakır bölgede küçük delik vardır. Delik lehim veya bakır tamir malzemesiyle kapatılabilir."
+    "open": "There is a break in the circuit trace. The broken copper trace can be repaired with solder or a jumper wire.",
+    "short": "There is a short circuit between two conductive traces. Excess solder or copper should be cleaned.",
+    "mousebite": "There is material loss on the copper trace. The area can be reinforced with solder.",
+    "spur": "There is an unwanted copper protrusion. The excess copper should be scraped off or cleaned.",
+    "copper": "There is a copper surface defect. Missing or excess copper areas should be inspected.",
+    "pin-hole": "There is a small hole in the copper area. The hole can be filled with solder or copper repair material."
 }
 
 defect_descriptions = {
-    "open": "Bakır yolun kopması veya devrenin kesilmesi.",
-    "short": "İki farklı iletken yolun istenmeden birleşmesi.",
-    "mousebite": "Bakır hatta kemirilmiş gibi eksik bölge oluşması.",
-    "spur": "Bakır yolda istenmeyen çıkıntı oluşması.",
-    "copper": "Bakır alanında eksiklik veya fazlalık bulunması.",
-    "pin-hole": "Bakır yüzey üzerinde küçük delik oluşması."
+    "open": "A break in the copper trace or an interrupted circuit.",
+    "short": "Two separate conductive traces unintentionally joined.",
+    "mousebite": "A nibbled-looking missing region on the copper trace.",
+    "spur": "An unwanted protrusion on the copper trace.",
+    "copper": "Missing or excess material on the copper area.",
+    "pin-hole": "A small hole on the copper surface."
 }
 
 
 
 uploaded_file = st.file_uploader(
-    "PCB görüntüsü yükle",
+    "Upload a PCB image",
     type=["jpg", "jpeg", "png", "bmp"]
 )
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
 
-    # Yüklenen renkli görüntüyü siyah-beyaz (gri tonlama) hale getir.
-    # YOLO modeli DeepPCB'nin siyah-beyaz görüntüleri üzerinde eğitildiği için
-    # hata tespiti her zaman bu siyah-beyaz sürüm üzerinde yapılır.
-    # convert("L") tek kanallı gri görüntü üretir, convert("RGB") ile tekrar
-    # 3 kanala çevrilir (YOLO ve görselleştirme 3 kanal bekler).
+    # Convert the uploaded color image to black-and-white (grayscale).
+    # The YOLO model was trained on DeepPCB's black-and-white images, so
+    # defect detection always runs on this grayscale version.
+    # convert("L") produces a single-channel grayscale image; convert("RGB")
+    # brings it back to 3 channels (YOLO and visualization expect 3 channels).
     gray_image = image.convert("L").convert("RGB")
 
     deeppcb_like, color_difference = is_deeppcb_like(image)
 
     if deeppcb_like:
         st.success(
-            "Bu görüntü DeepPCB benzeri siyah-beyaz AOI formatına yakın görünüyor. "
-            "Pix2Pix görsel onarım önerisi etkinleştirilebilir."
+            "This image looks close to the DeepPCB-like black-and-white AOI format. "
+            "The Pix2Pix visual repair suggestion can be enabled."
         )
         use_pix2pix = True
     else:
         st.warning(
-            "Bu görüntü DeepPCB benzeri siyah-beyaz AOI formatında görünmüyor. "
-            "YOLO tahmini çalıştırılabilir; ancak Pix2Pix modeli yalnızca DeepPCB benzeri görüntülerde "
-            "anlamlı sonuç üretir. Bu nedenle Pix2Pix bu görüntüde otomatik olarak devre dışı bırakıldı."
+            "This image does not look like the DeepPCB black-and-white AOI format. "
+            "YOLO prediction can still run; however, the Pix2Pix model only produces "
+            "meaningful results on DeepPCB-like images, so Pix2Pix has been disabled "
+            "automatically for this image."
         )
         use_pix2pix = False
 
     if force_pix2pix:
         st.info(
-            "Sidebar üzerinden Pix2Pix çalıştırma seçildi. "
-            "Bu durumda sonuçlar deneysel olarak değerlendirilmelidir."
+            "Forcing Pix2Pix was selected in the sidebar. "
+            "In this case the results should be considered experimental."
         )
         use_pix2pix = True
 
-    st.caption(f"Görüntü renk farkı skoru: {color_difference:.2f}")
+    st.caption(f"Image color difference score: {color_difference:.2f}")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Yüklenen Görüntü")
+        st.subheader("Uploaded Image")
         st.image(image, use_container_width=True)
 
     with col2:
-        st.subheader("Siyah-Beyaz (YOLO Girişi)")
+        st.subheader("Black & White (YOLO Input)")
         st.image(gray_image, use_container_width=True)
-        st.caption("YOLO tespiti bu siyah-beyaz görüntü üzerinde yapılır.")
+        st.caption("YOLO detection runs on this black-and-white image.")
 
-    # YOLO'ya orijinal renkli görüntü yerine siyah-beyaz sürümü ver.
+    # Feed YOLO the black-and-white version instead of the original color image.
     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
         gray_image.save(tmp.name)
         image_path = tmp.name
 
-    if st.button("Hata Tespit Et"):
+    if st.button("Detect Defects"):
         results = model.predict(
             source=image_path,
             conf=confidence_value,
@@ -349,7 +351,7 @@ if uploaded_file is not None:
         result_img = results[0].plot()
         result_img_rgb = cv2.cvtColor(result_img, cv2.COLOR_BGR2RGB)
 
-        st.subheader("YOLO Tespit Sonucu")
+        st.subheader("YOLO Detection Result")
         st.image(result_img_rgb, use_container_width=True)
 
         boxes = results[0].boxes
@@ -357,7 +359,7 @@ if uploaded_file is not None:
         st.divider()
 
         if len(boxes) == 0:
-            st.success("Herhangi bir hata tespit edilmedi.")
+            st.success("No defects were detected.")
         else:
             detected_classes = []
 
@@ -370,36 +372,36 @@ if uploaded_file is not None:
             total_errors = sum(counter.values())
             most_common_error = counter.most_common(1)[0][0]
 
-            st.subheader("Genel Durum Özeti")
+            st.subheader("Overall Summary")
 
             metric1, metric2, metric3 = st.columns(3)
 
             with metric1:
-                st.metric("Toplam Hata", total_errors)
+                st.metric("Total Defects", total_errors)
 
             with metric2:
-                st.metric("Farklı Hata Türü", len(counter))
+                st.metric("Distinct Defect Types", len(counter))
 
             with metric3:
-                st.metric("En Çok Görülen Hata", most_common_error)
+                st.metric("Most Common Defect", most_common_error)
 
             if total_errors <= 2:
-                st.info("Genel durum: Az sayıda hata tespit edildi. Kart kontrol edilmelidir.")
+                st.info("Overall status: A small number of defects were detected. The board should be inspected.")
             elif total_errors <= 6:
-                st.warning("Genel durum: Orta seviyede hata tespit edildi. Manuel inceleme önerilir.")
+                st.warning("Overall status: A moderate number of defects were detected. Manual inspection is recommended.")
             else:
-                st.error("Genel durum: Çok sayıda hata tespit edildi. Kart risklidir.")
+                st.error("Overall status: A large number of defects were detected. The board is at risk.")
 
             avg_confidence = sum(float(b.conf[0]) for b in boxes) / len(boxes)
-            st.metric("Ortalama Tespit Güveni", f"%{avg_confidence * 100:.1f}")
+            st.metric("Average Detection Confidence", f"{avg_confidence * 100:.1f}%")
 
             if avg_confidence < 0.45:
                 st.warning(
-                    "Ortalama güven düşük. Bu görüntü modelin eğitildiği DeepPCB görüntülerinden farklı olabilir. "
-                    "Sonuçlar deneysel olarak değerlendirilmelidir."
+                    "Average confidence is low. This image may differ from the DeepPCB images the model was trained on. "
+                    "The results should be considered experimental."
                 )
 
-            st.subheader("Hata Sayacı")
+            st.subheader("Defect Counter")
 
             count_cols = st.columns(3)
 
@@ -407,29 +409,29 @@ if uploaded_file is not None:
                 with count_cols[index % 3]:
                     st.metric(defect, count)
 
-            st.subheader("Detaylı Hata Listesi")
+            st.subheader("Detailed Defect List")
 
             for i, box in enumerate(boxes, start=1):
                 class_id = int(box.cls[0])
                 confidence = float(box.conf[0])
                 class_name = model.names[class_id]
 
-                with st.expander(f"{i}. Hata: {class_name} — %{confidence * 100:.2f} güven"):
-                    st.write("**Hata açıklaması:**")
-                    st.write(defect_descriptions.get(class_name, "Açıklama bulunamadı."))
+                with st.expander(f"Defect {i}: {class_name} — {confidence * 100:.2f}% confidence"):
+                    st.write("**Defect description:**")
+                    st.write(defect_descriptions.get(class_name, "No description found."))
 
-                    st.write("**Çözüm önerisi:**")
-                    st.info(fix_suggestions.get(class_name, "Bu hata için öneri bulunamadı."))
+                    st.write("**Suggested fix:**")
+                    st.info(fix_suggestions.get(class_name, "No suggestion found for this defect."))
 
                     st.progress(confidence)
 
             st.divider()
-            st.subheader("Pix2Pix Lokal Onarım Modülü")
+            st.subheader("Pix2Pix Local Repair Module")
 
             if use_pix2pix:
                 st.info(
-                    "Pix2Pix modeli görüntü için tahmini temiz görünüm üretir. "
-                    "Üretilen çıktı yalnızca YOLO'nun tespit ettiği hatalı bölgelerde görsel onarım önerisi olarak uygulanır."
+                    "The Pix2Pix model generates an estimated clean appearance for the image. "
+                    "The output is applied as a visual repair suggestion only on the defective regions detected by YOLO."
                 )
 
                 locally_repaired_image, repaired_patches = pix2pix_repair_full_image(
@@ -441,61 +443,62 @@ if uploaded_file is not None:
                 pix_col1, pix_col2 = st.columns(2)
 
                 with pix_col1:
-                    st.write("YOLO Hata Tespiti")
+                    st.write("YOLO Defect Detection")
                     st.image(result_img_rgb, use_container_width=True)
 
                 with pix_col2:
-                    st.write("Pix2Pix Lokal Onarım Önerisi")
+                    st.write("Pix2Pix Local Repair Suggestion")
                     st.image(locally_repaired_image, use_container_width=True)
 
                 repaired_buffer = io.BytesIO()
                 locally_repaired_image.save(repaired_buffer, format="PNG")
 
                 st.download_button(
-                    label="Lokal Onarım Önerisi Görselini İndir",
+                    label="Download Local Repair Suggestion Image",
                     data=repaired_buffer.getvalue(),
                     file_name="pcb_local_pix2pix_repaired.png",
                     mime="image/png"
                 )
 
-                st.subheader("Hata Bölgeleri Önce / Sonra")
+                st.subheader("Defect Regions Before / After")
 
                 st.caption(
-                    "Her satırda YOLO'nun bulduğu hata bölgesi ve Pix2Pix'in o bölge için ürettiği "
-                    "lokal onarım önerisi gösterilir."
+                    "Each row shows a defect region found by YOLO and the local repair "
+                    "suggestion generated by Pix2Pix for that region."
                 )
 
                 for patch in repaired_patches:
                     with st.expander(
-                        f"{patch['index']}. Hata: {patch['class_name']} — %{patch['confidence'] * 100:.2f} güven"
+                        f"Defect {patch['index']}: {patch['class_name']} — {patch['confidence'] * 100:.2f}% confidence"
                     ):
                         before_col, after_col = st.columns(2)
 
                         with before_col:
-                            st.write("Hatalı Bölge")
+                            st.write("Defective Region")
                             st.image(patch["original_crop"], use_container_width=True)
 
                         with after_col:
-                            st.write("Pix2Pix Lokal Onarım Önerisi")
+                            st.write("Pix2Pix Local Repair Suggestion")
                             st.image(patch["repaired_crop"], use_container_width=True)
             else:
                 st.warning(
-                    "Pix2Pix bu görüntü için çalıştırılmadı. "
-                    "Sebep: Görüntü DeepPCB veri seti formatına benzemiyor. "
-                    "Pix2Pix modeli bu tür renkli veya veri seti dışı PCB fotoğraflarında güvenilir sonuç üretmez."
+                    "Pix2Pix was not run for this image. "
+                    "Reason: the image does not resemble the DeepPCB dataset format. "
+                    "The Pix2Pix model does not produce reliable results on such color "
+                    "or out-of-dataset PCB photos."
                 )
 
             st.divider()
-            st.subheader("Hata Türleri ve Çözüm Tablosu")
+            st.subheader("Defect Types and Fixes")
 
             table_data = []
 
             for defect in counter.keys():
                 table_data.append(
                     {
-                        "Hata Türü": defect,
-                        "Anlamı": defect_descriptions.get(defect, "-"),
-                        "Çözüm": fix_suggestions.get(defect, "-")
+                        "Defect Type": defect,
+                        "Meaning": defect_descriptions.get(defect, "-"),
+                        "Fix": fix_suggestions.get(defect, "-")
                     }
                 )
 
@@ -504,4 +507,4 @@ if uploaded_file is not None:
     os.remove(image_path)
 
 else:
-    st.info("Lütfen analiz etmek için bir PCB görüntüsü yükleyin.")
+    st.info("Please upload a PCB image to analyze.")
